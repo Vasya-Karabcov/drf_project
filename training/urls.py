@@ -10,7 +10,7 @@ app_name = TrainingConfig.name
 
 router = DefaultRouter()
 router.register(r'courses', CoursesViewSet, basename='courses'),
-router.register(r'payments', PayViewSet, basename='pay')
+router.register(r'pay', PayViewSet, basename='pay')
 
 urlpatterns = [
                   path('lesson/create/', LessonCreateAPIView.as_view(), name='lesson_create'),
