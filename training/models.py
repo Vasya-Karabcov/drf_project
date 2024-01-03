@@ -52,3 +52,14 @@ class Pay(models.Model):
 
     def __str__(self):
         return f'{self.user.email} - {self.date_pay} - {self.amount}'
+
+
+class Subscription(models.Model):
+    """
+        Модель подписки на курс.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="пользователь")
+    course = models.ForeignKey(Courses, on_delete=models.CASCADE, verbose_name="курс")
+
+    def __str__(self):
+        return f'{self.user.email} подписан на {self.course.title}'

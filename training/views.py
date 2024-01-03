@@ -1,10 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
+from rest_framework.response import Response
 
 from training.filters import PayFilter
-from training.models import Courses, Lesson, Pay
+from training.models import Courses, Lesson, Pay, Subscription
 from training.permissions import IsOwner, IsModerator
-from training.serliazers import CoursesSerializer, LessonSerializer, PaySerializer
+from training.serliazers import CoursesSerializer, LessonSerializer, PaySerializer, SubscriptionSerializer
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
@@ -61,3 +62,56 @@ class PayViewSet(viewsets.ModelViewSet):
     serializer_class = PaySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PayFilter
+
+
+class SubscribeCourseView(generics.CreateAPIView):
+    """
+    Создает подписку пользователя на указанный курс.
+    Parameters:
+        course_id (int): Идентификатор курса.
+    Returns:
+        Response: Объект ответа с информацией о результате операции.
+            HTTP_201_CREATED: Подписка успешно создана.
+            HTTP_400_BAD_REQUEST: Подписка уже существует.
+    """
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        course_id = kwargs.get('course_id')
+        course = Courses.objects.get(pk=course_id)
+
+        # Проверка, подписан ли пользователь уже на этот курс
+        if Subscription.objects.filter(user=request.user, course=course).exists():
+            return Response({'detail': 'Вы уже подписаны на этот курс.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data={'user': request.user.id, 'course': course.id})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response({'detail': 'Вы успешно подписались на курс.'}, status=status.HTTP_201_CREATED)
+
+
+class UnsubscribeCourseView(generics.DestroyAPIView):
+    """
+    Удаляет подписку пользователя на указанный курс.
+    Parameters:
+        course_id (int): Идентификатор курса.
+    Returns:
+        Response: Объект ответа с информацией о результате операции.
+            HTTP_200_OK: Подписка успешно удалена.
+    """
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        course_id = self.kwargs.get('course_id')
+        course = Courses.objects.get(pk=course_id)
+        return Subscription.objects.get(user=self.request.user, course=course)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({'detail': 'Вы успешно отписались от курса.'}, status=status.HTTP_200_OK)
