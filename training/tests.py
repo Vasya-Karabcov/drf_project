@@ -16,7 +16,7 @@ class TestLessonViews:
         assert response.status_code == status.HTTP_200_OK
 
     def test_create_lesson(self, client, super_user, course):
-        url = reverse('course:lesson-create')
+        url = reverse('course:lesson_create')
         client.force_authenticate(user=super_user)
         data = {
             'title': 'New Lesson',
@@ -29,14 +29,14 @@ class TestLessonViews:
         assert Lesson.objects.filter(title='New Lesson').exists()
 
     def test_retrieve_lesson(self, client, user, lesson):
-        url = reverse('course:lesson-detail', kwargs={'pk': lesson.id})
+        url = reverse('course:lesson_detail', kwargs={'pk': lesson.id})
         client.force_authenticate(user=user)
         response = client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert LessonSerializer(lesson).data == response.data
 
     def test_update_lesson(self, client, user, lesson):
-        url = reverse('course:lesson-update', kwargs={'pk': lesson.id})
+        url = reverse('course:lesson_update', kwargs={'pk': lesson.id})
         client.force_authenticate(user=user)
         data = {'title': 'Updated Lesson'}
         response = client.patch(url, data)
@@ -44,7 +44,7 @@ class TestLessonViews:
         assert Lesson.objects.get(id=lesson.id).title == 'Updated Lesson'
 
     def test_delete_lesson(self, client, super_user, lesson):
-        url = reverse('course:lesson-delete', kwargs={'pk': lesson.id})
+        url = reverse('course:lesson_delete', kwargs={'pk': lesson.id})
         client.force_authenticate(user=super_user)
         response = client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -56,14 +56,14 @@ class TestLessonViews:
 class TestSubscriptionViews:
 
     def test_subscribe_course(self, client, user, course):
-        url = reverse('course:subscribe-course', kwargs={'course_id': course.id})
+        url = reverse('course:subscribe_course', kwargs={'course_id': course.id})
         client.force_authenticate(user=user)
         response = client.post(url)
         assert response.status_code == status.HTTP_201_CREATED
         assert Subscription.objects.filter(user=user, course=course).exists()
 
     def test_unsubscribe_course(self, client, user, subscription):
-        url = reverse('course:unsubscribe-course', kwargs={'course_id': subscription.course.id})
+        url = reverse('course:unsubscribe_course', kwargs={'course_id': subscription.course.id})
         client.force_authenticate(user=user)
         response = client.delete(url)
         assert response.status_code == status.HTTP_200_OK
