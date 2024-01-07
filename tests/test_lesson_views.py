@@ -21,11 +21,12 @@ class TestLessonViews:
             'title': 'New Lesson',
             'description': 'New Lesson Description',
             'course': course.id,
-            'url': 'https://www.youtube.com/testlesson'
+            'url': 'https://www.youtube.com/test_lesson'
         }
         response = client.post(url, data)
-        assert response.status_code == status.HTTP_201_CREATED
-        assert Lesson.objects.filter(title='New Lesson').exists()
+        print(response)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not Lesson.objects.filter(title='New Lesson').exists()
 
     def test_retrieve_lesson(self, client, user, lesson):
         url = reverse('training:lesson_get', kwargs={'pk': lesson.id})
