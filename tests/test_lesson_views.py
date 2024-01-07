@@ -24,7 +24,6 @@ class TestLessonViews:
             'url': 'https://www.youtube.com/test_lesson'
         }
         response = client.post(url, data)
-        print(response)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert not Lesson.objects.filter(title='New Lesson').exists()
 
