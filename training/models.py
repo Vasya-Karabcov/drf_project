@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from training.services import create_stripe_session
+
 NULLABLE = {'blank': True, 'null': True}
 
 
@@ -50,8 +52,19 @@ class Pay(models.Model):
     pay_method = models.CharField(max_length=10, choices=PAY_METHOD_CHOICES, default='cash',
                                   verbose_name='способ оплаты')
 
+    session = models.CharField(max_length=350, verbose_name="текущая сессия для оплаты", unique=True, blank=True,
+                               null=True)
+
     def __str__(self):
-        return f'{self.user.email} - {self.date_pay} - {self.amount}'
+        return f'{self.user.email} - {self.date} - {self.amount}'
+
+    def save(self, *args, **kwargs):
+        if not self.session:
+            # Generate the Stripe session
+            stripe_session = create_stripe_session(self.course or self.lesson, self.user, self.amount)
+            self.session = stripe_session.id
+
+        super().save(*args, **kwargs)
 
 
 class Subscription(models.Model):

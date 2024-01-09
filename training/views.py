@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from training.filters import PayFilter
 from training.models import Courses, Lesson, Pay, Subscription
+from training.paginators import CoursePaginator, LessonPaginator
 from training.permissions import IsOwner, IsModerator
 from training.serliazers import CoursesSerializer, LessonSerializer, PaySerializer, SubscriptionSerializer
 
@@ -12,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 class CoursesViewSet(viewsets.ModelViewSet):
     serializer_class = CoursesSerializer
+    pagination_class = CoursePaginator
     queryset = Courses.objects.prefetch_related('lesson_set').all()
 
     def get_permissions(self):
@@ -38,6 +40,7 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = LessonPaginator
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
