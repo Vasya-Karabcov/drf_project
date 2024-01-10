@@ -10,6 +10,8 @@ from training.serliazers import CoursesSerializer, LessonSerializer, PaySerializ
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
+from training.tasks import sending_emails_about_updates
+
 
 class CoursesViewSet(viewsets.ModelViewSet):
     serializer_class = CoursesSerializer
@@ -29,6 +31,13 @@ class CoursesViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+
+        sending_emails_about_updates(instance.pk)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
